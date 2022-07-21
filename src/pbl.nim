@@ -2,7 +2,13 @@ import pbl/[types, settings, consts]
 import zero_functional, plotly
 import os, times
 
-const maxScore = 574.97
+const
+  minScore = 400.0
+  maxScore = 574.97
+
+  minScoreSize = 10.0
+  maxScoreSize = 40.0
+  
 
 proc map*(val, inStart, inEnd, outStart, outEnd: float): float =
   let slope = (outEnd - outStart) / (inEnd - inStart)
@@ -17,12 +23,12 @@ when isMainModule:
     colors, sizes: seq[float64]
     scores: seq[string]
 
-  for slice in dataset.chunked(5000, 1000):
+  for slice in dataset.chunked(50000, 1000):
     for entry in slice:
       if entry.hasInvalidSequence(): continue
-      if entry.score < 200: continue
-      colors.add map(entry.score, 0.0, maxScore, -1.0, 1.0)
-      sizes.add map(entry.score, 0.0, maxScore, 0.5, 24.0)
+      if entry.score < minScore: continue
+      colors.add entry.score
+      sizes.add map(entry.score, minScore, maxScore, minScoreSize, maxScoreSize)
 
       x.add entry.gravy()
       y.add entry.retentionTime
