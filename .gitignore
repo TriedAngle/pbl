@@ -1,0 +1,14 @@
+# nimble and nim generate sussy exectuables (randomly?) just to be sure remove exectuables
+*
+!*.*
+!*/
+*.exe
+*.out
+!LICENSE
+!Readme
+
+assets/datasets/*
+assets/plots/*
+!assets/datasets/Readme
+!assets/plots/Readme
+!assets/saved/*
