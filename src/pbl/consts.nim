@@ -6,9 +6,10 @@ export amino, hydrophobicity, weight
 proc calcGRAVY*(sequence: string, kind: HydrophicityScale = hsKyteDoolittle): float = 
   let calcFn = case kind:
     of hsKyteDoolittle: toKyteDoolittle
+    of hsHoppWoods: toHoppWoods
+    of hsCornette: toCornette
     else: quit($kind & "not implemented yet")
       
-  
   let sum = sequence --> map(it.calcFn()).sum()
 
   when RemoveUnderScores:

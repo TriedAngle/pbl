@@ -1,54 +1,58 @@
-import pbl/[types, settings, consts]
-import zero_functional, plotly
-import os, times
+import pbl/[types, settings, consts, gen/graphs]
+import datamancer
 
-const
-  minScore = 400.0
-  maxScore = 574.97
+proc generateDataFrame(dataset: DataSet, chunkCount = dsChunkCount, chunkSize = dsChunkSize, minScore: float = DataMinScore): DataFrame =
+  var
+    retentionTimes, scores: seq[float]
+    gravys, gravy2s, gravy3s, masses: seq[float]
+    lengths: seq[int]
+    counter: int
 
-  minScoreSize = 10.0
-  maxScoreSize = 40.0
+  for slice in dataset.chunked(chunkCount, chunkSize):
+    for entry in slice:
+      if entry.hasInvalidSequence():
+        when Debug: echo entry.sequence
+        continue
+      if entry.score < minScore: continue
+      counter += 1
+      retentionTimes.add entry.retentionTime
+      scores.add entry.score
+      gravys.add entry.gravy()
+      gravy2s.add entry.gravy(HydrophicityScale.hsHoppWoods)
+      gravy3s.add entry.gravy(HydrophicityScale.hsCornette)
+      masses.add entry.weight()
+      lengths.add entry.sequence.len()
+
+  result = toDf({
+    "Retention Time": retentionTimes,
+    "Score": scores,
+    "GRAVY": gravys,
+    "GRAVY2": gravy2s,
+    "GRAVY3": gravy3s,
+    "Mass": masses,
+    "Length": lengths
+  })
   
-
-proc map*(val, inStart, inEnd, outStart, outEnd: float): float =
-  let slope = (outEnd - outStart) / (inEnd - inStart)
-  result = outStart + slope * (val - inStart)
+  echo counter
 
 when isMainModule:
+  initTimer()
+  let dsTimer = cpuTime()
   var dataset = loadDataSet()
-  let start = cpuTime()
-  
-  var 
-    x, y: seq[float64]
-    colors, sizes: seq[float64]
-    scores: seq[string]
+  echoTime("Loaded: Dataset", since=dsTimer)
 
-  for slice in dataset.chunked(50000, 1000):
-    for entry in slice:
-      if entry.hasInvalidSequence(): continue
-      if entry.score < minScore: continue
-      colors.add entry.score
-      sizes.add map(entry.score, minScore, maxScore, minScoreSize, maxScoreSize)
+  let dfTimer = cpuTime()
+  let initialDf = generateDataFrame(dataset)
+  echoTime("Generated: Dataframe", since=dfTimer)
+  echo "Dataframe size: ", initialDf.len
 
-      x.add entry.gravy()
-      y.add entry.retentionTime
+  let dfSortTimer = cpuTime()
+  let scoreSortedDf = initialDf.arrange("Score", order = SortOrder.Ascending)
+  echoTime("Sorted: Dataframe (score)", since=dfSortTimer)
+  echo scoreSortedDf
 
-      scores.add $entry.score
+  let graphTimer = cpuTime()
+  generatePlots(scoreSortedDf, 10000)
+  echoTime("Generated: Graphs", since=graphTimer)
 
-
-  var d = Trace[float64](
-    mode: PlotMode.Markers, `type`: PlotType.ScatterGL,
-    xs: x, ys: y, text: scores
-  )
-  d.marker = Marker[float64](size: sizes, colorVals: colors, colorMap: ColorMap.Viridis)
-
-  var layout = Layout(
-    title: "GRAVY vs. Retention Time", width: 1280, height: 720,
-    xaxis: Axis(title: "GRAVY"),
-    yaxis: Axis(title: "Retention Time")
-  )
-
-  var p = Plot[float64](layout: layout, traces: @[d])
-
-  echo cpuTime() - start
-  p.show()
+  echoTime("Finished")

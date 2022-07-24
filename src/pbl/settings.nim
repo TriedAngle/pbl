@@ -1,9 +1,38 @@
-import os
+import os, times
+export times
 
-const BaseDir = currentSourcePath.parentDir()
-const AssetDir* = BaseDir / "../../assets"
-const PlotsDir* = AssetDir / "plots" 
-const DataSetsDir* = AssetDir / "datasets"
-const DataFile* = DataSetsDir / "retention_time.hdf5"
+const 
+  Debug* = false
+  BaseDir = currentSourcePath.parentDir()
+  AssetDir* = BaseDir / "../../assets"
+  PlotsDir* = AssetDir / "plots" 
+  DataSetsDir* = AssetDir / "datasets"
+  DataFile* = DataSetsDir / "retention_time.hdf5"
 
-const RemoveUnderScores* = true
+  RemoveUnderScores* = true
+
+  DataMaxScore* = 574.97
+
+  DataMinScore* = 100
+
+
+  dsChunkCount* = 10000
+  dsChunkSize* = 1000
+
+  PlotGravyRetentionMinSize* = 5.0
+  PlotGravyRetentionMaxSize* = 25.0
+
+var 
+  timer*: float
+
+proc initTimer*() = timer = cpuTime()
+
+proc timeSinceStart*(): float = cpuTime() - timer
+
+proc echoTime*(msg: string, now = cpuTime(), since = timer) =
+  echo msg, " - took: ", now - since, "s"
+
+
+proc endingName*(): string =
+  "min" & $ DataMinScore & "count" & $dsChunkCount & "size" & $dsChunkSize & 
+  "ssmin" & $ PlotGravyRetentionMinSize & "ssmax" & $PlotGravyRetentionMaxSize

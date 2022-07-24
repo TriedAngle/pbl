@@ -40,6 +40,25 @@ converter toString*(arr: array[120, char]): string =
       if c == '_': continue
     result = result & c
 
+proc `[]`*(data: DataSet, ids: HSlice[int, int]): DataSlice =
+  let offset = ids.a
+  let count = ids.b - ids.a
+  let sequencesRaw = data.dSetSequence.read_hyperslab(array[120, char], offset = @[offset], count = @[count], full_output = false)
+  let rawFilesRaw = data.dSetRawFile.read_hyperslab(array[120, char], offset = @[offset], count = @[count], full_output = false)
+  var sequences, rawFiles = newSeq[string](count)
+
+  for i, raw in sequencesRaw: sequences[i] = raw.toString
+  for i, raw in rawFilesRaw: rawFiles[i] = raw.toString
+
+  DataSlice(
+    len: count,
+    offset: offset,
+    retentionTimes: data.dSetRetentionTime.read_hyperslab(float, offset = @[offset], count = @[count], full_output = false),
+    scores: data.dSetScore.read_hyperslab(float, offset = @[offset], count = @[count], full_output = false),
+    sequences: sequences,
+    rawFiles: rawFiles
+  )
+
 iterator chunked*(data: DataSet, count, times: int, start = 0): DataSlice =
   proc newDataSlice(offset, count: int): DataSlice =
     let sequencesRaw = data.dSetSequence.read_hyperslab(array[120, char], offset = @[offset], count = @[count], full_output = false)
@@ -70,6 +89,14 @@ iterator chunked*(data: DataSet, count, times: int, start = 0): DataSlice =
     yield newDataSlice(offset, count)
     offset += count
 
+
+proc `[]`*(slice: DataSlice, idx: int): DataEntry =
+    result = DataEntry(
+      retentionTime: slice.retentionTimes[idx],
+      score: slice.scores[idx],
+      sequence: slice.sequences[idx],
+      rawFile: slice.rawFiles[idx]
+    )
 
 iterator items*(slice: DataSlice): DataEntry =
   for i in 0..<slice.len:

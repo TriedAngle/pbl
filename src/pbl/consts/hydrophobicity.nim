@@ -61,3 +61,55 @@ proc toKyteDoolittle*(c: char): float =
   of '_':  0.0
   else: 
     raise newException(ValueError, "Character: '" & $c & "' invalid")
+
+proc toHoppWoods*(c: char): float =
+  result = case c:
+  of 'A': -0.50
+  of 'C': -1.00
+  of 'D':  3.00
+  of 'E':  3.00
+  of 'F': -2.50
+  of 'G':  0.00
+  of 'H': -0.50
+  of 'I': -1.80
+  of 'K':  3.00
+  of 'L': -1.80
+  of 'M': -1.30
+  of 'N':  0.20
+  of 'P':  0.00
+  of 'Q':  0.20
+  of 'R':  3.00
+  of 'S':  0.30
+  of 'T': -0.40
+  of 'V': -1.50
+  of 'W': -3.40
+  of 'Y': -2.30
+  of '_': 0.0
+  else: 
+    raise newException(ValueError, "Character: '" & $c & "' invalid")
+
+proc toCornette*(c: char): float =
+  result = case c:
+  of 'A':  0.20
+  of 'C':  4.10 
+  of 'D': -3.10
+  of 'E': -1.80
+  of 'F':  4.40 
+  of 'G':  0.00
+  of 'H':  0.50
+  of 'I':  4.80 
+  of 'K': -3.10
+  of 'L':  5.70 
+  of 'M':  4.20 
+  of 'N': -0.50
+  of 'P': -2.20
+  of 'Q': -2.80
+  of 'R':  1.40
+  of 'S': -0.50
+  of 'T': -1.90
+  of 'V':  4.70 
+  of 'W':  1.00
+  of 'Y':  3.20
+  of '_':  0.0
+  else: 
+    raise newException(ValueError, "Character: '" & $c & "' invalid")
