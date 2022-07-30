@@ -7,6 +7,7 @@ proc generateDataFrame(dataset: DataSet, chunkCount = dsChunkCount, chunkSize = 
     gravys, gravy2s, gravy3s, masses: seq[float]
     lengths: seq[int]
     counter: int
+    sequences: seq[string]
 
   for slice in dataset.chunked(chunkCount, chunkSize):
     for entry in slice:
@@ -22,13 +23,15 @@ proc generateDataFrame(dataset: DataSet, chunkCount = dsChunkCount, chunkSize = 
       gravy3s.add entry.gravy(HydrophicityScale.hsCornette)
       masses.add entry.weight()
       lengths.add entry.sequence.len()
+      sequences.add entry.sequence
 
   result = toDf({
+    "Sequence": sequences,
     "Retention Time": retentionTimes,
     "Score": scores,
     "GRAVY": gravys,
-    "GRAVY2": gravy2s,
-    "GRAVY3": gravy3s,
+    # "GRAVY2": gravy2s,
+    # "GRAVY3": gravy3s,
     "Mass": masses,
     "Length": lengths
   })
@@ -49,10 +52,15 @@ when isMainModule:
   let dfSortTimer = cpuTime()
   let scoreSortedDf = initialDf.arrange("Score", order = SortOrder.Ascending)
   echoTime("Sorted: Dataframe (score)", since=dfSortTimer)
-  echo scoreSortedDf
+  echo scoreSortedDf.tail(20)
 
-  let graphTimer = cpuTime()
-  generatePlots(scoreSortedDf, 10000)
-  echoTime("Generated: Graphs", since=graphTimer)
+  let group = scoreSortedDf.group_by("Sequence")
+  echo group.tail(20)
+  echo group.summarize(f{"Sequence"})
+
+
+  # let graphTimer = cpuTime()
+  # generatePlots(scoreSortedDf, 10000)
+  # echoTime("Generated: Graphs", since=graphTimer)
 
   echoTime("Finished")

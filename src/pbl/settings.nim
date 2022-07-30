@@ -16,8 +16,8 @@ const
   DataMinScore* = 100
 
 
-  dsChunkCount* = 10000
-  dsChunkSize* = 1000
+  dsChunkCount* = 1000
+  dsChunkSize* = 10
 
   PlotGravyRetentionMinSize* = 5.0
   PlotGravyRetentionMaxSize* = 25.0
