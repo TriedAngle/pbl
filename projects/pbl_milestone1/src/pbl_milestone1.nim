@@ -1,4 +1,4 @@
-import pbl/[types, settings, consts, gen/graphs]
+import pbl_milestone1/[types, settings, consts, gen/graphs]
 import datamancer
 
 proc generateDataFrame(dataset: DataSet, chunkCount = dsChunkCount, chunkSize = dsChunkSize, minScore: float = DataMinScore): DataFrame =
