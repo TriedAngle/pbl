@@ -1,0 +1,12 @@
+[package]
+name = "framework"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+hdf5 = { version = "0.8.1", features = ["blosc"] }
+ndarray = "0.15.6"
+color-eyre = "0.6.2"
+polars = { git = "https://github.com/pola-rs/polars", branch = "master", features = ["lazy", "csv-file", "ipc"] }

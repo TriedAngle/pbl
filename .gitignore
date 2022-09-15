@@ -6,6 +6,9 @@
 *.out
 !LICENSE
 !Readme
+.idea
+
+**/target/
 
 assets/datasets/*
 assets/plots/*

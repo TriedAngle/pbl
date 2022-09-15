@@ -1,8 +1,9 @@
+use crate::consts::AMINO_ACIDS;
+use crate::hdf::{RawFile, RetentionTime, Score, Sequence};
+use color_eyre::Result;
+use ndarray::{s, Array, Ix1};
 use std::ops::Range;
 use std::path::Path;
-use color_eyre::Result;
-use ndarray::{Array, Ix1, s};
-use crate::{RawFile, RetentionTime, Score, Sequence};
 
 #[derive(Debug)]
 pub struct Dataset {
@@ -11,7 +12,7 @@ pub struct Dataset {
     pub score: hdf5::Dataset,
     pub sequence: hdf5::Dataset,
     pub raw_file: hdf5::Dataset,
-    pub len: usize
+    pub len: usize,
 }
 
 #[derive(Debug)]
@@ -66,7 +67,7 @@ impl Dataset {
         })
     }
 
-    pub fn slice(&self, range: Range<usize>,) -> Result<DataSlice> {
+    pub fn slice(&self, range: Range<usize>) -> Result<DataSlice> {
         let len = range.len();
         let (start, stop) = (range.start, range.end);
         let retention_time = data_slice(&self.retention_time, start, stop)?;
@@ -80,7 +81,7 @@ impl Dataset {
             sequence,
             raw_file,
             offset: range.start,
-            len
+            len,
         })
     }
 
@@ -116,6 +117,31 @@ impl DataSlice {
     }
 }
 
+impl<'a> DataEntry<'a> {
+    pub fn is_unimplemented_sequence(&self) -> bool {
+        let sequence = self.sequence.as_str();
+        let len = sequence.len();
+        let sequence = &self.sequence.as_str()[1..len - 1];
+        for c in sequence.chars() {
+            if !AMINO_ACIDS.contains(&c) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    pub fn is_valid_format(&self) -> bool {
+        let sequence = self.sequence.as_str();
+        let len = sequence.len();
+        if sequence.chars().nth(0).unwrap() != '_' || sequence.chars().nth(len - 1).unwrap() != '_'
+        {
+            return false;
+        }
+        let sequence = &self.sequence.as_str()[1..len - 1];
+        return !sequence.contains('_');
+    }
+}
+
 impl<'a> Iterator for DataChunkIter<'a> {
     type Item = DataSlice;
 
@@ -141,6 +167,7 @@ impl<'a> Iterator for DataChunkIter<'a> {
         Some(slice)
     }
 }
+
 impl<'a> Iterator for DataSliceIter<'a> {
     type Item = DataEntry<'a>;
     fn next(&mut self) -> Option<Self::Item> {
@@ -182,7 +209,11 @@ impl Default for Dataset {
     }
 }
 
-fn data_slice<T: hdf5::H5Type>(dataset: &hdf5::Dataset, start: usize, stop: usize) -> Result<Array<T, Ix1>> {
+fn data_slice<T: hdf5::H5Type>(
+    dataset: &hdf5::Dataset,
+    start: usize,
+    stop: usize,
+) -> Result<Array<T, Ix1>> {
     let slice = dataset.read_slice_1d::<T, _>(s![start..stop])?;
     Ok(slice)
 }

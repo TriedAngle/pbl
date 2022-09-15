@@ -1,5 +1,5 @@
 [package]
-name = "batch_effect"
+name = "sql_converter"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,4 +7,6 @@ edition = "2021"
 
 [dependencies]
 framework = { path = "../../framework", version = "0.1" }
+tokio = { version = "1.21.1", features = ["macros"] }
 sqlx = {version = "0.6.1", features = ["postgres", "runtime-tokio-rustls", "macros"]}
+color-eyre = "0.6.2"
