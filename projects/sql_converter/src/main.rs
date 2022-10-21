@@ -2,13 +2,22 @@ use color_eyre::Result;
 use framework::consts;
 use framework::consts::HydroScale;
 use framework::hdf::{Dataset, RawFile, RetentionTime, Score, Sequence};
-use sqlx::{Connection, Executor, PgConnection, PgPool};
+use sqlx::{Connection, Executor, FromRow, PgConnection, PgPool};
 use tokio::time::Instant;
 
 #[derive(sqlx::FromRow)]
 struct SeqInsert {
     id: i32,
     sequence: String,
+}
+
+#[derive(Debug, FromRow)]
+struct Record {
+    id: i32,
+    retention_time: f32,
+    score: f32,
+    sequence: i32,
+    file: i32
 }
 
 const FILE: &str = "../../assets/datasets/retention_time.hdf5";
@@ -21,15 +30,15 @@ async fn main() -> Result<()> {
     let split_amount = 10000;
     let split = (len + split_amount - 1) / split_amount;
 
-    let mut pool = PgPool::connect("posgresql://admin:admin@localhost/admin").await?;
+    let mut pool = PgPool::connect("postgresql://admin:admin@localhost/pbl").await?;
 
     if !FIRST {
-        sqlx::query(r#"DROP TABLE extras;"#).execute(&pool).await?;
-        sqlx::query(r#"DROP TABLE records;"#).execute(&pool).await?;
-        sqlx::query(r#"DROP TABLE sequences;"#)
+        sqlx::query(r#"DROP TABLE IF EXISTS extras;"#).execute(&pool).await?;
+        sqlx::query(r#"DROP TABLE IF EXISTS records;"#).execute(&pool).await?;
+        sqlx::query(r#"DROP TABLE IF EXISTS sequences;"#)
             .execute(&pool)
             .await?;
-        sqlx::query(r#"DROP TABLE files;"#).execute(&pool).await?;
+        sqlx::query(r#"DROP TABLE IF EXISTS files;"#).execute(&pool).await?;
     }
     let _ = sqlx::query(
         r#"
