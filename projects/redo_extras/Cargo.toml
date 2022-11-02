@@ -1,0 +1,12 @@
+[package]
+name = "redo_extras"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+framework = { path = "../../framework", version = "0.1" }
+tokio = { version = "1.21.1", features = ["macros"] }
+sqlx = {version = "0.6.1", features = ["postgres", "runtime-tokio-rustls", "macros"]}
+serde = { version = "1.0.147", features = ["derive"] }
